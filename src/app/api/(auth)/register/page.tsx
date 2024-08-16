@@ -10,11 +10,16 @@ import {MinusCircleOutlined, PlusCircleOutlined} from '@ant-design/icons';
 import { Space } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
-import { message, Upload } from 'antd';
+import { message, Upload, Button as AntButton, Modal } from 'antd';
 import Navbar from '@/components/general/Navbar';
 import CryptoJS from 'crypto-js';
 import Cookies from 'js-cookie';
 import { notification } from 'antd';
+import { SHOP_CATEGORIES } from '@/constants/index';
+import { apiService, showNotification } from '@/services/apiService';
+import GoogleMapsAutocomplete from '@/components/general/MapWithMarker';
+import PlaceAutocomplete from '@/components/admin/PlaceAutoComplete';
+
 
 
 interface RegisterFormInputs {
@@ -28,8 +33,11 @@ interface RegisterFormInputs {
     ownerNIC: string;
     businessLocation: string;
     businessAddress: string; // Array of strings for dynamic textboxes
+    latitude: number;
+    longitude: number;
     businessLanguages: string[]; // Array of strings for checkboxes
     businessCategory: string;
+    shopCategory: string;
     businessServices: { service: string }[];
     websiteURL: string;
     password:string;
@@ -86,16 +94,26 @@ const RegisterPage: React.FC = () => {
         formData.append('ownerContact', data.ownerContact);
         formData.append('ownerNic', data.ownerNIC);
         formData.append('address', data.businessAddress);
+        formData.append('latitude', data.latitude.toString());
+        formData.append('longitude', data.longitude.toString());
         formData.append('languages', languageStings);
         if(data.businessCategory === 'Shop'){
-            formData.append('categoryId', '1');
+            formData.append('businessType', '1');
         }
         else{
-            formData.append('categoryId', '2');
+            formData.append('businessType', '2');
+        }
+        if(data.businessCategory === 'Shop'){
+            formData.append('shop_category', data.shopCategory)
+        }
+        else{
+            formData.append('shop_category', '0')
         }
         formData.append('services', serviceStrings);
         formData.append('websiteUrl', data.websiteURL);
         formData.append('password', hashedPassword); 
+
+        console.log("Form Data:",formData);
 
         try {
             
@@ -112,17 +130,19 @@ const RegisterPage: React.FC = () => {
       
             const responseData = await response.json();
             // Assuming responseData structure is similar to { message: string, data: { accessToken: string, refreshToken: string } }
-            openNotification(responseData.message);
-            console.log('Login successful:', responseData.message);
+            showNotification('success', 'Login Status', responseData.message || 'Successfully Logged In');
+            console.log('Registration successful:', responseData.message);
             console.log('Access Token:', responseData.data.accessToken);
             console.log('Refresh Token:', responseData.data.refreshToken);
       
             Cookies.set('accessToken', responseData.data.accessToken, { expires: 1 }); // expires in 1 day
             Cookies.set('refreshToken', responseData.data.refreshToken, { expires: 7 }); // expires in 7 days
+
+            window.location.href = '/api/business/dashboard';
       
             // Handle storing tokens or redirecting to authenticated area
           } catch (error) {
-            setError('Failed to Register. Please check your credentials.');
+            showNotification('error', 'Login Status', 'Failed to login. Please check your credentials.');
             console.error('Registration error:', error);
           }
     };
@@ -130,6 +150,15 @@ const RegisterPage: React.FC = () => {
     const { Dragger } = Upload;
 
     const [file, setFile] = useState<File | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [markerPosition, setMarkerPosition] = useState({ lat: 6.9271, lng: 79.8612 }); // Default position (Colombo, Sri Lanka)
+
+    const handlePlaceSelected = ({ lat, lng, address }) => {
+        setValue('businessLocation', address);
+        setValue('latitude', lat);
+        setValue('longitude', lng);
+        console.log(lat, lng);
+      };
 
     const props: UploadProps = {
         maxCount: 1,
@@ -401,7 +430,7 @@ const RegisterPage: React.FC = () => {
                                     <h3 className="text-xl font-bold mb-4 text-green-90">Business Information</h3>
                                     <div className="mb-4">
                                         <label className="block text-green-90 text-sm font-bold mb-2" htmlFor="businessLocation">
-                                            Business Location:
+                                        Business Location:
                                         </label>
                                         <input
                                             className="appearance-none border border-green-50 rounded-lg w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -409,9 +438,17 @@ const RegisterPage: React.FC = () => {
                                             type="text"
                                             placeholder="Enter Business Location"
                                             {...register('businessLocation')}
-                                        />
-                                        {errors.businessLocation && <p className="text-red-500 text-xs">{errors.businessLocation.message}</p>}
-                                    </div>
+                                            readOnly
+                                            />
+                                            {errors.businessLocation && <p className="text-red-500 text-xs">{errors.businessLocation.message}</p>}
+                                        </div>
+
+                                        <div className="mb-4">
+                                            <GoogleMapsAutocomplete onPlaceSelected={handlePlaceSelected} />
+                                        </div>
+
+                                        <input type="hidden" {...register('latitude')} />
+                                        <input type="hidden" {...register('longitude')} />
                                     <div className="mb-4">
                                         <label className="block text-green-90 text-sm font-bold mb-2" htmlFor="businessAddress">
                                             Business Address:
@@ -472,6 +509,7 @@ const RegisterPage: React.FC = () => {
                                                     value="Shop"
                                                     {...register('businessCategory')}
                                                     className=" border-green-50 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-5 h-5"
+                                                    onChange={() => setSelectedCategory('Shop')}
                                                 />
                                                 <span className="ml-2 text-gray-700">Shop</span>
                                             </label>
@@ -481,12 +519,35 @@ const RegisterPage: React.FC = () => {
                                                     value="Service Provider"
                                                     {...register('businessCategory')}
                                                     className=" border-green-50 text-gray-700 leading-tight focus:outline-none focus:shadow-outline w-5 h-5"
+                                                    onChange={() => setSelectedCategory('Service Provider')}
                                                 />
                                                 <span className="ml-2 text-gray-700">Service Provider</span>
                                             </label>
                                         </div>
                                         {errors.businessCategory && <p className="text-red-500 text-xs">{errors.businessCategory.message}</p>}
                                     </div>
+
+                                    {selectedCategory === 'Shop' && (
+                                        <div className="mb-4">
+                                        <label className="block text-green-90 text-sm font-bold mb-2" htmlFor="shopCategory">
+                                            Shop Category:
+                                        </label>
+                                        <select
+                                            id="shopCategory"
+                                            {...register('shopCategory', { required: 'Shop Category is required' })}
+                                            className="appearance-none border border-green-50 rounded-lg w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        >
+                                            <option value="">Select Shop Category</option>
+                                            {SHOP_CATEGORIES.map((category) => (
+                                                <option key={category.id} value={category.id}>
+                                                    {category.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {errors.shopCategory && <p className="text-red-500 text-xs">{errors.shopCategory.message}</p>}
+                                        </div>
+                                    )}
+
                                     <div className="mb-4">
                                         <label className="block text-green-90 text-sm font-bold mb-2" htmlFor="websiteURL">
                                             Business Website URL:

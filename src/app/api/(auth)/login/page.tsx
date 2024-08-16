@@ -3,14 +3,18 @@
 import React from 'react';
 import { useState } from 'react';
 import Image from 'next/image';
-import Button from '../../../../components/general/Button';
+
+import Button from '@/components/general/Button';
+import Navbar from '@/components/general/Navbar';
+
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { loginSchema } from '@/validations/loginSchema';
-import { notification } from 'antd';
+
 import CryptoJS from 'crypto-js';
 import Cookies from 'js-cookie';
-import Navbar from '@/components/general/Navbar';
+
+import { apiService, showNotification } from '@/services/apiService';
 
 interface LoginFormInputs {
   email: string;
@@ -18,7 +22,7 @@ interface LoginFormInputs {
 }
 
 const LoginPage: React.FC = () => {
-  // Initialize useForm with validation schema
+
   const {
     register,
     handleSubmit,
@@ -27,25 +31,8 @@ const LoginPage: React.FC = () => {
     resolver: yupResolver(loginSchema),
   });
 
-  const openNotification = (message: string) => {
-    notification.success({
-      message: 'Login Status',
-      description: message,
-      placement: 'topRight',
-    });
-  };
-
-  const openNotificationFailed = (message: string) => {
-    notification.error({
-      message: 'Login Status',
-      description: message,
-      placement: 'topRight',
-    });
-  };
-
   const [error, setError] = useState<string | null>(null);
 
-  // Handle form submission
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
     try {
       const hashedPassword = CryptoJS.SHA256(data.password).toString(CryptoJS.enc.Hex);
@@ -67,12 +54,12 @@ const LoginPage: React.FC = () => {
       const responseData = await response.json();
 
       if (!response.ok) {
-        openNotificationFailed(responseData.message);
+        showNotification('error', 'Error', responseData.message || 'An error occurred');
         throw new Error('Failed to login');
       }
 
-      // Assuming responseData structure is similar to { message: string, data: { accessToken: string, refreshToken: string } }
-      openNotification(responseData.message);
+      showNotification('success', 'Login Status', responseData.message || 'Successfully Logged In');
+
       console.log('Login successful:', responseData.message);
       console.log('Access Token:', responseData.data.accessToken);
       console.log('Refresh Token:', responseData.data.refreshToken);
@@ -80,9 +67,11 @@ const LoginPage: React.FC = () => {
       Cookies.set('accessToken', responseData.data.accessToken, { expires: 1 }); // expires in 1 day
       Cookies.set('refreshToken', responseData.data.refreshToken, { expires: 7 }); // expires in 7 days
 
+      window.location.href = '/api/business/dashboard';
+
       // Handle storing tokens or redirecting to authenticated area
     } catch (error) {
-      setError('Failed to login. Please check your credentials.');
+      showNotification('error', 'Login Status', 'Failed to login. Please check your credentials.');
       console.error('Login error:', error);
     }
   };

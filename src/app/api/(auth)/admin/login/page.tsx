@@ -11,6 +11,7 @@ import { loginSchema } from '@/validations/loginSchema';
 import { notification } from 'antd';
 import CryptoJS from 'crypto-js';
 import Cookies from 'js-cookie';
+import { apiService, showNotification } from '@/services/apiService';
 
 interface LoginFormInputs {
   email: string;
@@ -27,20 +28,14 @@ const AdminLoginPage: React.FC = () => {
     resolver: yupResolver(loginSchema),
   });
 
-  const openNotification = (message: string) => {
-    notification.success({
-      message: 'Login Status',
-      description: message,
-      placement: 'topRight',
-    });
-  };
-
   const [error, setError] = useState<string | null>(null);
+  
 
   // Handle form submission
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
+    
     try {
-      const hashedPassword = CryptoJS.SHA256(data.password).toString(CryptoJS.enc.Hex);
+      // const hashedPassword = CryptoJS.SHA256(data.password).toString(CryptoJS.enc.Hex);
 
       const response = await fetch('http://localhost:8081/api/proxy/login', {
         method: 'POST',
@@ -50,19 +45,21 @@ const AdminLoginPage: React.FC = () => {
         body: JSON.stringify({
           role: 'ADMIN',
           email: data.email,
-          password: hashedPassword,
+          password: data.password,
         }),
       });
 
       console.log('Login response:', response);
 
+      const responseData = await response.json();
+
       if (!response.ok) {
+        showNotification('error', 'Error', responseData.message || 'An error occurred');
         throw new Error('Failed to login');
       }
 
-      const responseData = await response.json();
-      // Assuming responseData structure is similar to { message: string, data: { accessToken: string, refreshToken: string } }
-      openNotification(responseData.message);
+      showNotification('success', 'Login Status', responseData.message || 'Successfully Logged In');
+
       console.log('Login successful:', responseData.message);
       console.log('Access Token:', responseData.data.accessToken);
       console.log('Refresh Token:', responseData.data.refreshToken);
@@ -70,9 +67,11 @@ const AdminLoginPage: React.FC = () => {
       Cookies.set('accessToken', responseData.data.accessToken, { expires: 1 }); // expires in 1 day
       Cookies.set('refreshToken', responseData.data.refreshToken, { expires: 7 }); // expires in 7 days
 
+      window.location.href = '/api/admin/dashboard';
+
       // Handle storing tokens or redirecting to authenticated area
     } catch (error) {
-      setError('Failed to login. Please check your credentials.');
+      showNotification('error', 'Login Status', 'Failed to login');
       console.error('Login error:', error);
     }
   };
@@ -136,9 +135,6 @@ const AdminLoginPage: React.FC = () => {
                     />
                   </div>
                 </div>
-                <p className="mt-20 text-gray-500 text-sm flexCenter">
-                  Do not have an account? <a className="font-bold text-green-50 hover:text-green-800" href="/api/register"> &nbsp; Register</a>
-                </p>
               </form>
             </div>
           </div>

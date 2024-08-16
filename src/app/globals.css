@@ -4,6 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
+@import '~slick-carousel/slick/slick.css';
+@import '~slick-carousel/slick/slick-theme.css';
+
 * {
   margin: 0;
   padding: 0;
@@ -47,6 +50,7 @@ main {
   
   .max-container {
     @apply mx-auto max-w-[1440px];
+    overflow: visible;
   }
 
   .padding-container {
@@ -242,4 +246,15 @@ main {
   height: 3rem; /* equivalent to h-12 */
 }
 
+.custom-spin .ant-spin-dot-item {
+  background-color: #609734; /* Your desired color */
+}
+
+.relative:hover .peer {
+  opacity: 0.5;
+}
+
+.relative .peer:hover {
+  opacity: 1 !important;
+}
 

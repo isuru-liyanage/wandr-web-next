@@ -1,147 +1,166 @@
 'use client';
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import TableCard from '@/components/admin/TableCard';
 import Chip from '@/components/general/Chip';
 import {Row, Col, Input, Tag, Modal} from 'antd'; // Assuming this is where your BlogPost component is located
 import { Avatar, Tooltip, Space,Button, message} from 'antd';
 // import Button from '@/components/Button';
 import { FrownOutlined, SearchOutlined, SmileOutlined } from '@ant-design/icons';
+import { apiService, showNotification } from '@/services/apiService'
+import LoadingPopup from '@/components/general/LoadingPopup';
 
-
-const advertisements = {
-    PendingAdvsertisements: [
-        { 
-            key: '1', 
-            number: '1', 
-            shopName: 'Trendy Threads',
-            shopImageUrl: '/loginPage.png',
-            title : 'Summer Sale Extravaganza',
-            description : 'Enjoy up to 50% off on all summer collections. Limited time offer!',
-            adImageUrl: '/loginPage.png',
-            package : 'Gold',
-            requestedDate: '2024-07-01'
-        },
-        { 
-            key: '2', 
-            number: '2', 
-            shopName: 'Wanderlust Travels',
-            shopImageUrl: '/loginPage.png',
-            title : 'Exotic Beach Getaways',
-            description : 'Discover pristine beaches and enjoy exclusive travel packages to the most exotic destinations.',
-            adImageUrl: '/loginPage.png',
-            package : 'Silver',
-            requestedDate: '2024-07-03'
-    
-        },
-        { 
-            key: '3', 
-            number: '3', 
-            shopName: 'Adventure Seekers',
-            shopImageUrl: '/loginPage.png',
-            title : 'Mountain Climbing Adventures',
-            description : 'Join our guided mountain climbing tours and conquer the highest peaks safely.',
-            adImageUrl: '/loginPage.png',
-            package : 'Bronze',
-            requestedDate: '2024-07-03'
-    
-        },
-      ],
-      ApprovedAdvsertisements: [
-        { 
-            key: '1', 
-            number: '1', 
-            shopName: 'Cruise Away',
-            shopImageUrl: '/loginPage.png',
-            title : 'Luxury Cruise Packages',
-            description : 'Experience the ultimate luxury with our all-inclusive cruise packages to breathtaking destinations.',
-            adImageUrl: '/loginPage.png',
-            package : 'Silver',
-            postedDate: '2024-07-09',
-            remainingDays: '10'
-    
-            },
-        { 
-            key: '2', 
-            number: '2', 
-            shopName: 'Sky High Adventures',
-            shopImageUrl: '/loginPage.png',
-            title : 'Hot Air Balloon Rides',
-            description : ' Enjoy breathtaking views from above with our hot air balloon rides. Perfect for special occasions!',
-            adImageUrl: '/loginPage.png',
-            package : 'Bronze',
-            postedDate: '2024-07-05',
-            remainingDays: '05'
-    
-        },
-        { 
-            key: '3', 
-            number: '3', 
-            shopName: ' Jewel Elegance',
-            shopImageUrl: '/loginPage.png',
-            title : ' Elegant Ornaments Collection',
-            description : 'Discover our exquisite collection of handcrafted ornaments. Perfect for adding a touch of elegance to any occasion.',
-            adImageUrl: '/loginPage.png',
-            package : 'Gold',
-            postedDate: '2024-07-12',
-            remainingDays: '12'
-    
-        },
-      ]
-
-
-}  
-  
 
 const AdvertisementsTable = () => {
 //   const [data, setData] = useState(tableData);
-  const [currentSet, setCurrentSet] = useState('PendingAdvsertisements');
+  const [currentSet, setCurrentSet] = useState([]);
+  const [pendingAdvertisements, setPendingAdvertisements] = useState([]);
+  const [approvedAdvertisements, setApprovedAdvertisements] = useState([]);
+  const [status, setStatus] = useState('pendingAds');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleApprove = async (record: any) => {
-    // Send an API call to approve the business registration request
+  const fetchPendingAdvertisements = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch('/api/approveAdvertisement', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ businessId: record.key }),
-      });
-  
-      if (response.ok) {
-        message.success('Advertisement approved successfully');
-        // Optionally update the table data to reflect the change
+      const response = await apiService.get('/ads/pending');
+      console.log(response);
+      
+      if (response.success) {
+        if (response.data) {
+          const formattedData = response.data.map((item:any, index:any) => ({
+            key: index + 1,
+            number: index + 1,
+            id: item.adId,
+            shopName: item.shopName,
+            shopImageUrl: item.image || '/advertisement.jpg',
+            title: item.title,
+            description: item.description,
+            adImageUrl: item.image || '/advertisement2.jpeg',
+            package: item.businessPlan,
+            requestedDate: new Date(item.requestedDate).toLocaleDateString()
+          }));
+          setPendingAdvertisements(formattedData);
+          if (status === 'pendingAds') {
+            setCurrentSet(formattedData);
+          }
+          showNotification('success', 'Operation Status', response.message || 'Successfully Fetched Pending Advertisement Details');
+        } else {
+          setPendingAdvertisements([]);
+          if (status === 'pendingAds') {
+            setCurrentSet([]);
+          }
+          showNotification('warning', 'Operation Status', 'No data available');
+        }
       } else {
-        message.error('Failed to approve the Advertisement');
+        throw new Error(response.message || 'Failed to fetch advertisements');
       }
     } catch (error) {
-      console.error('Error approving Advertisement:', error);
-      message.error('Error approving the Advertisement');
+      showNotification('error', 'Operation Status', 'Error Fetching Advertisement Details');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleDecline = async (record: any) => {
-    // Send an API call to decline the business registration request
+  const fetchApprovedAdvertisements = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch('/api/declineAdvertisement', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ businessId: record.key }),
-      });
-  
-      if (response.ok) {
-        message.success('Advertisement declined successfully');
-        // Optionally update the table data to reflect the change
+      const response = await apiService.get('/ads/approved');
+      console.log(response);
+      if (response.success) {
+        if (response.data) {
+          const formattedData = response.data.map((item:any, index:any) => ({
+            key: index + 1,
+            number: index + 1,
+            id: item.adId,
+            shopName: item.shopName,
+            shopImageUrl: item.image || '/loginPage.png',
+            title: item.title,
+            description: item.description,
+            adImageUrl: item.image || '/loginPage.png',
+            package: item.businessPlan,
+            postedDate: new Date(item.postedDate).toLocaleDateString(),
+            remainingDays: item.remainingDays
+          }));
+          setApprovedAdvertisements(formattedData);
+          if (status === 'approvedAds') {
+            setCurrentSet(formattedData);
+          }
+          showNotification('success', 'Operation Status', response.message || 'Successfully Fetched Approved Advertisement Details');
+        } else {
+          setApprovedAdvertisements([]);
+          if (status === 'approvedAds') {
+            setCurrentSet([]);
+          }
+          showNotification('warning', 'Operation Status', 'No data available');
+        }
       } else {
-        message.error('Failed to decline the business');
+        throw new Error(response.message || 'Failed to fetch advertisements');
       }
     } catch (error) {
-      console.error('Error declining Advertisement:', error);
-      message.error('Error declining the Advertisement');
+      showNotification('error', 'Operation Status', 'Error Fetching Approved Advertisement Details');
+    } finally {
+      setIsLoading(false);
     }
-};
+  };
+
+  useEffect(() => {
+    fetchPendingAdvertisements();
+    fetchApprovedAdvertisements();
+  }, []);
+
+  useEffect(() => {
+    switch (status) {
+      case 'pendingAds':
+        setCurrentSet(pendingAdvertisements);
+        break;
+      case 'approvedAds':
+        setCurrentSet(approvedAdvertisements);
+        break;
+      default:
+        setCurrentSet(pendingAdvertisements);
+        break;
+    }
+  }, [status, pendingAdvertisements, approvedAdvertisements]);
+
+  const handleApprove = async (record_key: any) => {
+    // Send an API call to approve the business registration request
+    
+    console.log("record.key",record_key);
+    console.log("record.id",record_key);
+    try {
+      const response = await apiService.get(`/ads/approve/${record_key}`);
+  
+      if (response.success) {
+        showNotification('success', 'Operation Status', response.message || 'Successfully Approved the Business');
+        setPendingAdvertisements(prevData => prevData.filter(item => item.key !== record_key));
+      } else {
+        showNotification('error', 'Operation Status', response.message || 'Failed to approve the business');
+      }
+    } catch (error) {
+      console.error('Error approving business:', error);
+      showNotification('error', 'Operation Status', 'Successfully Approved the Business');
+    }
+  };
+
+  const handleDecline = async (record_key: any) => {
+    // Send an API call to approve the business registration request
+    console.log("record.key",record_key);
+    console.log("record.id",record_key);
+
+    try {
+      const response = await apiService.get(`/ads/decline/${record_key}`);
+  
+      if (response.success) {
+        showNotification('success', 'Operation Status', response.message || 'Successfully Declined the Business');
+        setApprovedAdvertisements(prevData => prevData.filter(item => item.key !== record_key));
+      } else {
+        showNotification('error', 'Operation Status', response.message || 'Failed to decline the business');
+      }
+    } catch (error) {
+      console.error('Error declining business:', error);
+      showNotification('error', 'Operation Status', 'Successfully Declined the Business');
+    }
+  };
 
   
 
@@ -207,12 +226,12 @@ const AdvertisementsTable = () => {
         <Space size="middle">
           <Button
             icon={<SmileOutlined className='text-green-50' />}
-            onClick={() => handleApprove(record.key)}
+            onClick={() => handleApprove(record.id)}
             type="text"
           />
           <Button
             icon={<FrownOutlined className='text-red-600' />}
-            onClick={() => handleDecline(record.key)}
+            onClick={() => handleDecline(record.id)}
             type="text"
           />
         </Space>
@@ -283,12 +302,12 @@ const AdvertisementsTable = () => {
         <Space size="middle">
           <Button
             icon={<SmileOutlined className='text-green-50' />}
-            onClick={() => handleApprove(record.key)}
+            onClick={() => handleApprove(record.id)}
             type="text"
           />
           <Button
             icon={<FrownOutlined className='text-red-600' />}
-            onClick={() => handleDecline(record.key)}
+            onClick={() => handleDecline(record.id)}
             type="text"
           />
         </Space>
@@ -308,7 +327,7 @@ const AdvertisementsTable = () => {
   //   );
   // };
 
-  const filteredData = advertisements[currentSet].filter((item) => {
+  const filteredData = currentSet.filter((item) => {
     const searchTextLower = searchText.toLowerCase();
     return (
       item.shopName.toLowerCase().includes(searchTextLower) ||
@@ -318,15 +337,15 @@ const AdvertisementsTable = () => {
 
   return (
     <div className="p-4 gap-4 m-3">
-       <Row align={'middle'} gutter={8}>
+      <Row align={'middle'} gutter={8}>
         <Col span={4}>
             <Button 
-                type={currentSet === 'PendingAdvsertisements' ? 'primary' : 'default'} 
-                onClick={() => setCurrentSet('PendingAdvsertisements')}
+                type={status === 'pendingAds' ? 'primary' : 'default'} 
+                onClick={() => setStatus('pendingAds')}
                 style={{
                     marginLeft: 8,
-                    backgroundColor: currentSet === 'PendingAdvsertisements' ? '#609734' : undefined,
-                    borderColor: currentSet === 'PendingAdvsertisements' ? '#609734' : undefined,
+                    backgroundColor: status === 'pendingAds' ? '#609734' : undefined,
+                    borderColor: status === 'pendingAds' ? '#609734' : undefined,
                 }}
             >
                 Pending Advertisements
@@ -334,12 +353,12 @@ const AdvertisementsTable = () => {
         </Col>
         <Col span={4}>
             <Button 
-                type={currentSet === 'ApprovedAdvsertisements' ? 'primary' : 'default'} 
-                onClick={() => setCurrentSet('ApprovedAdvsertisements')} 
+                type={status === 'approvedAds' ? 'primary' : 'default'} 
+                onClick={() => setStatus('approvedAds')} 
                 style={{
                     marginLeft: 8,
-                    backgroundColor: currentSet === 'ApprovedAdvsertisements' ? '#609734' : undefined,
-                    borderColor: currentSet === 'ApprovedAdvsertisements' ? '#609734' : undefined,
+                    backgroundColor: status === 'approvedAds' ? '#609734' : undefined,
+                    borderColor: status === 'approvedAds' ? '#609734' : undefined,
                   }}
             >
                 Approved Advertisements
@@ -354,11 +373,16 @@ const AdvertisementsTable = () => {
             prefix={<SearchOutlined style={{color:'#609734'}}/>}
           />
         </Col>
-       </Row>
+      </Row>
         <TableCard 
-          columns={currentSet === 'PendingAdvsertisements' ? columnsPending : columnsApproved} 
-          data={(filteredData.length == 0 && searchText === '') ? advertisements[currentSet] : filteredData}
-          title="Advertisements"
+          columns={status === 'pendingAds' ? columnsPending : columnsApproved} 
+          data={(filteredData.length == 0 && searchText === '') ? currentSet : filteredData}
+          title={status === 'pendingAds' ? 'Pending Advertisements' : 'Approved Advertisements'}
+        />
+        <LoadingPopup
+          visible={isLoading}
+          title="Fetching All Advertisement Details"
+          description="Please wait while we gather all the details for you. This might take a moment."
         />
     </div>
   );
