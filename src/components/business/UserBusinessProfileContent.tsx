@@ -1,158 +1,107 @@
 import { useState } from "react";
-import {Form, Input, Button, Upload, Row, Col} from "antd";
-import {InboxOutlined, UploadOutlined} from "@ant-design/icons";
-import Dragger from "antd/lib/upload/Dragger";
+import {Form, Avatar, Button, Upload, Row, Col, Card, Space} from "antd";
+import {router} from "next/client";
+import {link} from "fs";
+import { useRouter } from 'next/navigation'
+
 export  const UserBusinessProfileContent = () => {
     const [form] = Form.useForm();
 
-    const handleFinish = (values: any) => {
-        console.log("Form values:", values);
+    const router = useRouter()
+    const handleFinish = () => {
+        router.push('profile-edit')
     };
 
     return (
-        <Row justify="center" className="p-4">
-            <Col span={24}>
-                <div className='gap-3 border border-gray-200 rounded-xl p-5'>
-                    <Form
-                        form={form}
-                        layout="vertical"
-                        onFinish={handleFinish}
-                        initialValues={{
-                            ownerName: "",
-                            contactNumber: "",
-                            email: "",
-                            nicNumber: "",
-                            location: "",
-                            address: "",
-                            description: "",
-                            category: "",
-                            websiteUrl: "",
-                            serviceInfo: "",
-                        }}
-                    >
-                        <Row gutter={20}  >
-                            <Col span={16} className="flex flex-row">
-                                <Col span={12}>
-                                    <Form.Item
-                                        name="ownerName"
-                                        label={<span className="text-green-50 font-semibold">Name of the owner</span>}
+        <div className="flex justify-center w-full mt-10 flex-col items-center mb-6">
+            <div className="w-10/12 bg-green-50 h-32 rounded-2xl flex flex-row justify-between p-6 mb-[-40px]">
+                <p className={"text-white  text-2xl"}>My Profile</p>
+                <Button>Upload Photo</Button>
+            </div>
+            <div className="w-9/12 shadow-[5px_5px_5px_rgba(0,0,0,0.15)] p-6 flex-row flex justify-evenly bg-white rounded-xl" >
 
-                                        rules={[{ required: true, message: "Please input the owner's name!" }]}
-                                    >
-                                        <Input />
-                                    </Form.Item>
-                                    <Form.Item
-                                        name="email"
-                                        label={<span className="text-green-50 font-semibold">Business Email Address</span>}
-                                        rules={[{ required: true, message: "Please input the email address!", type: "email" }]}
-                                    >
-                                        <Input />
-                                    </Form.Item>
-                                    <Form.Item
-                                        name="location"
-                                        label={<span className="text-green-50 font-semibold">Business Location</span>}
-                                        rules={[{ required: true, message: "Please input the business location!" }]}
-                                    >
-                                        <Input />
-                                    </Form.Item>
-                                    <Form.Item
-                                        name="category"
-                                        label={<span className="text-green-50 font-semibold">Business Category</span>}
-                                        rules={[{ required: true, message: "Please input the business category!" }]}
-                                    >
-                                        <Input />
-                                    </Form.Item>
-                                </Col>
+                <Col>
+                    <Avatar style={{backgroundColor:'#609734'}} src={'/person-1.png'} className="size-24" size={"large"}/>
+                </Col>
+                <Col>
+                    <div className="flex gap-3.5 flex-col">
+                        <Card size="default"  style={{ width: 300}}>
+                            <p className="font-bold text-gray-500 mt-1">Name</p>
+                            <p>Sid</p>
+                            <p className="font-bold text-gray-500 mt-1">Email</p>
+                            <p>siddxd@growthx.com</p>
+                            <p className="font-bold text-gray-500 mt-1">Phone Number</p>
+                            <p> +91 49652845732</p>
+                            <p className="font-bold text-gray-500 mt-1"> NIC Number</p>
+                            <p>2001323435363</p>
+                        </Card>
+                        <Card size="default"  style={{ width: 300}}>
+                            <p className="font-bold text-xl text-black mt-1">Description</p>
+                            <p> Lorem ipsum dolor sit amet consectetur. Erat auctor a aliquam vel congue luctus. Leo
+                                diam cras neque mauris ac arcu elit ipsum dolor sit amet consectetur.Lorem ipsum dolor sit amet consectetur. Erat auctor a aliquam vel congue luctus. Leo
+                                diam cras neque mauris ac arcu elit ipsum dolor sit amet consectetur. </p>
 
-
-                                <Col span={12}>
-                                    <Form.Item
-                                        name="contactNumber"
-                                        label={<span className="text-green-50 font-semibold">Contact Number of the owner</span>}
-                                        rules={[{ required: true, message: "Please input the contact number!" }]}
-                                    >
-                                        <Input />
-                                    </Form.Item>
-
-
-                                    <Form.Item
-                                        name="nicNumber"
-                                        label={<span className="text-green-50 font-semibold">Owner's NIC Number</span>}
-                                        rules={[{ required: true, message: "Please input the NIC number!" }]}
-                                    >
-                                        <Input />
-                                    </Form.Item>
-
-
-                                    <Form.Item
-                                        name="address"
-                                        label={<span className="text-green-50 font-semibold">Business Address</span>}
-                                        rules={[{ required: true, message: "Please input the business address!" }]}
-                                    >
-                                        <Input />
-                                    </Form.Item>
-                                    <Form.Item
-                                        name="websiteUrl"
-                                        label={<span className="text-green-50 font-semibold">Business Website URL</span>}
-                                        rules={[{ required: true, message: "Please input the website URL!" }, { type: "url", message: "Please enter a valid URL!" }]}
-                                    >
-                                        <Input />
-                                    </Form.Item>
-                                </Col>
-                            </Col>
-
-
-                            <Col span={8}>
-
-                                <Form.Item
-                                    name="upload"
-                                    label={<span style={{ color: 'green' }}>Upload Image</span>}
-                                    valuePropName="fileList"
-                                    getValueFromEvent={(e) => (Array.isArray(e) ? e : e && e.fileList)}
-
-                                >
-                                    <Dragger name="files" action="/upload.do">
-                                        <p className="">
-                                            <InboxOutlined className="text-green-50 text-4xl" />
-                                        </p>
-                                        <p className="text-green-50">Click or drag file to this area to upload</p>
-
-                                    </Dragger>
-                                </Form.Item>
-                                <Form.Item
-                                    name="description"
-                                    label={<span className="text-green-50 font-semibold">Description</span>}
-                                    rules={[{ required: true, message: "Please input the description!" }]}
-                                >
-                                    <Input.TextArea className="!min-h-[145px]" />
-                                </Form.Item>
-
-                            </Col>
-                        </Row>
-
-
-
-
-
-
-
-
-                            <Form.Item
-                                name="serviceInfo"
-                                label={<span className="text-green-50 font-semibold">Service Information</span>}
-                                rules={[{ required: true, message: "Please input the service information!" }]}
-                            >
-                                <Input.TextArea className={"!min-h-[140px]"} />
-                            </Form.Item>
-
+                        </Card>
                         <div className="text-center">
-                            <Button type="primary" className="bg-green-50 w-48 rounded-lg hover:!bg-green-600" htmlType="submit">
+                            <Button type="primary" className="bg-green-50 w-full rounded-lg hover:!bg-green-600" onClick={handleFinish}>
                                 Edit Details
                             </Button>
                         </div>
-                    </Form>
-                </div>
-            </Col>
-        </Row>
+                    </div>
+                </Col>
+                <Col>
+                    <div className="flex gap-3.5 flex-col">
+                        <Card size="default"  style={{ width: 450}}>
+                            <p className="font-bold text-xl text-black mb-1">Service Information</p>
+                            <p> Lorem ipsum dolor sit amet consectetur. Erat auctor a aliquam vel congue luctus. Leo
+                                diam cras neque mauris ac arcu elit ipsum dolor sit amet consectetur.</p>
+
+                        </Card>
+                        <Card size="default"  style={{ width: 450}}>
+                            <p className="font-bold text-xl text-black mb-1">Website</p>
+                            <p> Lorem ipsum dolor sit amet consectetur. Erat auctor a aliquam vel congue luctus. Leo
+                                diam cras neque mauris ac arcu elit ipsum dolor sit amet consectetur.</p>
+
+                        </Card>
+                        <Card size="default"  style={{ width: 400}}>
+                            <div className="mapouter">
+                                <div className="gmap_canvas">
+                                    <iframe
+                                        className="gmap_iframe"
+                                        frameBorder="0"
+                                        scrolling="no"
+                                        marginHeight={0}
+                                        marginWidth={0}
+                                        src="https://maps.google.com/maps?width=350&height=215&hl=en&q=university of colombo school of computing&t=&z=13&ie=UTF8&iwloc=B&output=embed"
+                                        width="350"
+                                        height="215"
+                                        title="Google Map"
+                                    ></iframe>
+                                </div>
+                                <style jsx>{`
+                                .mapouter {
+                                  position: relative;
+                                  text-align: right;
+                                  width: 350px;
+                                  height: 215px;
+                                }
+                                .gmap_canvas {
+                                  overflow: hidden;
+                                  background: none !important;
+                                  width: 350px;
+                                  height: 215px;
+                                }
+                                .gmap_iframe {
+                                  width: 350px !important;
+                                  height: 215px !important;
+                                }
+                              `}</style>
+                            </div>
+
+                        </Card>
+                    </div>
+                </Col>
+            </div>
+        </div>
     );
 }
