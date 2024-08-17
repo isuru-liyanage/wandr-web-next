@@ -9,6 +9,7 @@ import {
   LogoutOutlined,
   WechatWorkOutlined,
 } from '@ant-design/icons';
+import {MenuProps} from "antd";
 
 export const NAV_LINKS = [
     { href: '/', key: 'home', label: 'Home' },
