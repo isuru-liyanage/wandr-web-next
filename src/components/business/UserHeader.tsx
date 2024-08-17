@@ -2,7 +2,43 @@ import React, {useState} from 'react'
 import {Input, Avatar, Badge, Dropdown, Space, MenuProps} from 'antd'
 import {UserOutlined, BellOutlined, SearchOutlined, DownOutlined, SmileOutlined} from '@ant-design/icons'
 import {root} from "postcss";
-import {items} from "@/constants";
+
+
+export const items: MenuProps['items'] = [
+    {
+        key: '1',
+        label: (
+            <a target="_blank" rel="noopener noreferrer" href="">
+                1st menu item
+            </a>
+        ),
+    },
+    {
+        key: '2',
+        label: (
+            <a target="_blank" rel="" href="https://www.aliyun.com">
+                2nd menu item
+            </a>
+        ),
+        icon: <SmileOutlined />,
+        disabled: false,
+    },
+    {
+        key: '3',
+        label: (
+            <a target="_blank" rel="noopener noreferrer" href="https://www.luohanacademy.com">
+                3rd menu item
+            </a>
+        ),
+        disabled: false,
+    },
+    {
+        key: '4',
+        danger: true,
+        label: 'a danger item',
+    },
+];
+
 
 interface UserHeaderProps{
   page:string;
