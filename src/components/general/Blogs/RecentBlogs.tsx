@@ -1,10 +1,11 @@
 // src/components/RecentBlogs.tsx
-
+"use client"
 import React from 'react';
 import Image from 'next/image';
 import { Avatar } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import Button from '../Button';
+import {useRouter} from "next/navigation";
 
 interface Blog {
   id: number;
@@ -56,6 +57,11 @@ const blogs: Blog[] = [
 ];
 
 const RecentBlogs: React.FC = () => {
+  const router = useRouter()
+  function handleClick() {
+    router.push('/api/business/blog_post', { scroll: false })
+  }
+
   return (
     <section className="max-container padding-container gap-20 md:gap-28 lg:pb-20 my-10 lg:my-0">
         <Image
@@ -70,7 +76,7 @@ const RecentBlogs: React.FC = () => {
       <p className="text-md text-gray-30 mb-12 text-center">Explore the latest blog posts from our community. Stay updated with exciting stories, tips, and insights from our diverse group of authors.</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 hover:cursor-pointer">
         {blogs.map((blog) => (
-          <div key={blog.id} className="bg-white shadow-lg rounded-lg overflow-hidden">
+          <div key={blog.id} className="bg-white shadow-lg rounded-lg overflow-hidden" onClick={handleClick}>
             <Image src={blog.image} alt={blog.title} width={400} height={300} className="w-full h-48 object-cover" />
             <div className="p-4">
               <h3 className="text-lg font-semibold mb-2">{blog.title}</h3>

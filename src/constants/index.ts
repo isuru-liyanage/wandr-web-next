@@ -1,13 +1,13 @@
 // NAVIGATION
 import {
-  PieChartOutlined ,
+  PieChartOutlined,
   EnvironmentOutlined,
-  FundOutlined ,
+  FundOutlined,
   ShopOutlined,
   SafetyCertificateOutlined,
   SettingOutlined,
   LogoutOutlined,
-  WechatWorkOutlined,
+  WechatWorkOutlined, StarOutlined,
 } from '@ant-design/icons';
 import {MenuProps} from "antd";
 
@@ -35,9 +35,10 @@ export const NAV_LINKS = [
     { href: '/api/business/dashboard', key: 'dashboard', label: 'Dashboard', icon: PieChartOutlined  },
     { href: '/api/business/chat', key: 'chat', label: 'Chat', icon: WechatWorkOutlined },
     { href: '/api/business/products', key: 'products', label: 'Products', icon: ShopOutlined },
+    { href: '/api/business/feedbacks', key: 'Feedbacks', label: 'Feedbacks', icon: StarOutlined },
     { href: '/api/business/advertisements', key: 'advertisements', label: 'Advertisements', icon: FundOutlined  },
     { href: '/api/business/profile', key: 'profile', label: 'Profile', icon: SafetyCertificateOutlined },
-    // { href: '/api/admin/settings', key: 'settings', label: 'Settings', icon: SettingOutlined },
+
 
   ];
 
